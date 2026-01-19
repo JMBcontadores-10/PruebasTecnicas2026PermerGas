@@ -245,7 +245,7 @@
     
     <div style="background-color: var(--bg-card); padding: 30px; border-radius: 10px; border: 1px solid var(--border); max-width: 600px; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         <p style="color:var(--text-main); line-height: 1.6; margin-top:0;">
-            Bienvenido/a. Tienes <b>10 minutos</b> para completar los escenarios.
+            Bienvenido/a. Tienes <b>13 minutos</b> para completar los escenarios.
         </p>
         <p style="color:var(--text-main); line-height: 1.6;">
             <b>Nota Importante:</b> No hay respuestas "incorrectas". Evaluamos tu <b>capacidad de razonar</b> y cómo justificas tus decisiones técnicas. 
@@ -288,7 +288,7 @@
 <div id="finish-modal" class="modal-overlay">
     <div class="modal-content">
         <h2 style="color:var(--primary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:10px;">🚀 ¡Casi listo!</h2>
-        <p style="color:var(--text-muted); margin-bottom:20px;">Déjanos tus datos para validar la prueba y contactarte. (Máx 2 min).</p>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Déjanos tus datos para validar la prueba y contactarte.</p>
         
         <form id="final-form" onsubmit="event.preventDefault(); descargarJSON();">
             <div class="form-group">
@@ -332,7 +332,7 @@
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="doubt-btn" onclick="pausarPorDuda()">✋ Tengo una Duda</button>
-            <div class="timer-container" id="timer">10:00</div>
+            <div class="timer-container" id="timer">13:00</div>
             <button class="theme-toggle" onclick="toggleTheme()">🌗 Tema</button>
         </div>
     </header>
@@ -428,7 +428,7 @@
 
 <script>
     // --- Lógica del Timer Principal ---
-    let tiempoRestante = 600; // 10 minutos
+    let tiempoRestante = 780; // 13 minutos (13 * 60 = 780)
     const timerDisplay = document.getElementById('timer');
     let timerInterval = null; 
     let dudasRegistradas = [];
