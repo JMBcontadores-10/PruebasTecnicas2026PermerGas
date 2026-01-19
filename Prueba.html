@@ -258,6 +258,7 @@
         <ul style="color:var(--text-muted); margin-top: 10px; padding-left: 20px; line-height: 1.5;">
             <li>No buscamos código perfecto, sino lógica clara.</li>
             <li>Si algo no está claro, no adivines: <b>pregunta</b>.</li>
+            <li>Puedes usar IA como inspiración <b>máximo 3 veces</b>.</li>
             <li>¿Tienes dudas? Usa el botón <b style="color:#f59e0b">"✋ Tengo una Duda"</b> para pausar el tiempo.</li>
         </ul>
     </div>
@@ -274,9 +275,9 @@
 <div id="doubt-modal" class="modal-overlay">
     <div class="modal-content" style="text-align:center;">
         <h2 style="color:var(--text-main); margin-top:0;">⏸️ Tiempo Pausado</h2>
-        <p style="color:var(--text-muted);">Tienes 1 minuto para explicar tu duda.</p>
+        <p style="color:var(--text-muted);">Tienes 2 minutos para explicar tu duda.</p>
         
-        <div style="font-size:2rem; font-weight:bold; color:#f59e0b; margin: 15px 0;" id="doubt-timer">60</div>
+        <div style="font-size:2rem; font-weight:bold; color:#f59e0b; margin: 15px 0;" id="doubt-timer">120</div>
         
         <textarea id="doubt-text" placeholder="Escribe aquí tu duda sobre la pregunta..." style="height:80px; margin-bottom:15px;"></textarea>
         
@@ -435,7 +436,7 @@
 
     // --- Lógica del Timer de Dudas ---
     let dudaInterval = null;
-    let tiempoDuda = 60;
+    let tiempoDuda = 120; // 2 minutos
     const doubtTimerDisplay = document.getElementById('doubt-timer');
 
     // 1. INICIAR PRUEBA
@@ -467,7 +468,7 @@
         clearInterval(timerInterval);
         document.getElementById('doubt-modal').style.display = 'flex';
         document.getElementById('doubt-text').value = ''; 
-        tiempoDuda = 60;
+        tiempoDuda = 120; // Reiniciar a 120s
         doubtTimerDisplay.textContent = tiempoDuda;
         
         dudaInterval = setInterval(() => {
@@ -475,6 +476,7 @@
             doubtTimerDisplay.textContent = tiempoDuda;
             
             if (tiempoDuda <= 0) {
+                alert("El tiempo para tu duda ha terminado.");
                 cerrarDuda(); 
             }
         }, 1000);
