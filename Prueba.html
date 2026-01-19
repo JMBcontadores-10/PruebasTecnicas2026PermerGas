@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación Técnica - Lógica y Arquitectura</title>
+<style>
+    /* Variables CSS para manejo de Temas */
+    :root {
+        --primary: #2563eb;
+        --bg-body: #f3f4f6;
+        --bg-card: #ffffff;
+        --text-main: #1f2937;
+        --text-muted: #6b7280;
+        --border: #e5e7eb;
+        --input-bg: #ffffff;
+        --highlight: #dbeafe;
+        --overlay-bg: rgba(255, 255, 255, 0.98);
+    }
+
+    /* Clase para modo oscuro */
+    [data-theme="dark"] {
+        --primary: #60a5fa;
+        --bg-body: #111827;
+        --bg-card: #1f2937;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --border: #374151;
+        --input-bg: #374151;
+        --highlight: #1e3a8a;
+        --overlay-bg: rgba(17, 24, 39, 0.98);
+    }
+
+    body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        padding: 20px;
+        transition: background-color 0.3s, color 0.3s;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    /* PANTALLA DE INICIO (OVERLAY) */
+    #start-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: var(--overlay-bg);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        transition: background-color 0.3s;
+    }
+
+    /* MODAL GENÉRICO (Duda y Final) */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+        overflow-y: auto; /* Para pantallas pequeñas */
+    }
+
+    .modal-content {
+        background-color: var(--bg-card);
+        padding: 30px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        text-align: left;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        position: relative;
+    }
+
+    #quiz-content {
+        display: none; /* Oculto hasta dar Start */
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .timer-container {
+        font-size: 1.2rem;
+        font-weight: bold;
+        background: var(--primary);
+        color: white;
+        padding: 5px 15px;
+        border-radius: 6px;
+    }
+
+    button.theme-toggle {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text-main);
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+
+    button.doubt-btn {
+        background: #f59e0b; /* Amber */
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    button.doubt-btn:hover { background: #d97706; }
+
+    .btn-start {
+        font-size: 1.5rem;
+        padding: 15px 40px;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        margin-top: 20px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 8px rgba(0,0,0,0.15); }
+
+    .card {
+        background-color: var(--bg-card);
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    h3 { margin-top: 0; color: var(--primary); }
+    
+    .scenario {
+        font-style: italic;
+        background-color: var(--highlight);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+    }
+
+    textarea {
+        width: 100%;
+        height: 100px;
+        padding: 10px;
+        background-color: var(--input-bg);
+        color: var(--text-main);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        resize: vertical;
+        font-family: monospace;
+        margin-top: 5px;
+    }
+
+    /* Estilos del formulario final */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+    .form-group input, .form-group textarea {
+        width: 100%; padding: 10px; 
+        border: 1px solid var(--border); 
+        background: var(--input-bg);
+        color: var(--text-main);
+        border-radius: 4px;
+        box-sizing: border-box; /* Importante para padding */
+    }
+    .form-group small { color: var(--text-muted); font-size: 0.8rem; }
+
+    .options label {
+        display: block;
+        margin: 8px 0;
+        cursor: pointer;
+    }
+
+    .ai-check {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+    }
+    
+    .ai-check input { margin-right: 8px; }
+
+    .btn-finish {
+        width: 100%;
+        padding: 15px;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-top: 20px;
+    }
+
+    .btn-finish:hover { opacity: 0.9; }
+
+    /* Estilo para los créditos */
+    .credits {
+        margin-top: 30px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        text-align: center;
+    }
+    .credits a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: bold;
+    }
+    .credits a:hover {
+        text-decoration: underline;
+    }
+
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE INICIO -->
+<div id="start-overlay">
+    <!-- Botón de Tema Absoluto -->
+    <button class="theme-toggle" onclick="toggleTheme()" style="position: absolute; top: 20px; right: 20px; background: var(--bg-card); box-shadow: 0 2px 5px rgba(0,0,0,0.1);">🌗 Tema</button>
+
+    <h1 style="color:var(--text-main); margin-bottom: 10px;">Prueba Técnica: Criterio & Arquitectura</h1>
+    
+    <div style="background-color: var(--bg-card); padding: 30px; border-radius: 10px; border: 1px solid var(--border); max-width: 600px; text-align: left; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        <p style="color:var(--text-main); line-height: 1.6; margin-top:0;">
+            Bienvenido/a. Tienes <b>10 minutos</b> para completar los escenarios.
+        </p>
+        <p style="color:var(--text-main); line-height: 1.6;">
+            <b>Nota Importante:</b> No hay respuestas "incorrectas". Evaluamos tu <b>capacidad de razonar</b> y cómo justificas tus decisiones técnicas. 
+            No tengas miedo a preguntar o explicar tu punto de vista.
+        </p>
+        
+        <hr style="border:0; border-top:1px solid var(--border); margin: 20px 0;">
+        
+        <b style="color:var(--text-main);">Reglas del Juego:</b>
+        <ul style="color:var(--text-muted); margin-top: 10px; padding-left: 20px; line-height: 1.5;">
+            <li>No buscamos código perfecto, sino lógica clara.</li>
+            <li>Si algo no está claro, no adivines: <b>pregunta</b>.</li>
+            <li>¿Tienes dudas? Usa el botón <b style="color:#f59e0b">"✋ Tengo una Duda"</b> para pausar el tiempo.</li>
+        </ul>
+    </div>
+
+    <button class="btn-start" onclick="iniciarPrueba()">COMENZAR PRUEBA</button>
+
+    <!-- Créditos -->
+    <div class="credits">
+        Prueba desarrollada por Joseph Fabrizzio <a href="https://github.com/Jfabrizzio5" target="_blank">@Jfabrizzio5</a> en GitHub
+    </div>
+</div>
+
+<!-- MODAL DE DUDA -->
+<div id="doubt-modal" class="modal-overlay">
+    <div class="modal-content" style="text-align:center;">
+        <h2 style="color:var(--text-main); margin-top:0;">⏸️ Tiempo Pausado</h2>
+        <p style="color:var(--text-muted);">Tienes 1 minuto para explicar tu duda.</p>
+        
+        <div style="font-size:2rem; font-weight:bold; color:#f59e0b; margin: 15px 0;" id="doubt-timer">60</div>
+        
+        <textarea id="doubt-text" placeholder="Escribe aquí tu duda sobre la pregunta..." style="height:80px; margin-bottom:15px;"></textarea>
+        
+        <button class="btn-finish" style="margin-top:0; background-color: var(--text-main);" onclick="cerrarDuda()">Guardar y Continuar Examen</button>
+    </div>
+</div>
+
+<!-- MODAL FINAL (DATOS PERSONALES) -->
+<div id="finish-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color:var(--primary); margin-top:0; border-bottom:1px solid var(--border); padding-bottom:10px;">🚀 ¡Casi listo!</h2>
+        <p style="color:var(--text-muted); margin-bottom:20px;">Déjanos tus datos para validar la prueba y contactarte. (Máx 2 min).</p>
+        
+        <form id="final-form" onsubmit="event.preventDefault(); descargarJSON();">
+            <div class="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" id="contact-name" required placeholder="Ej: Juan Pérez">
+            </div>
+            
+            <div class="form-group">
+                <label>Correo Electrónico *</label>
+                <input type="email" id="contact-email" required placeholder="juan@email.com">
+            </div>
+
+            <div class="form-group">
+                <label>Teléfono / WhatsApp *</label>
+                <input type="tel" id="contact-phone" required placeholder="+52 55 1234 5678">
+            </div>
+
+            <div class="form-group">
+                <label>GitHub / Portfolio (Opcional)</label>
+                <input type="url" id="contact-github" placeholder="https://github.com/usuario">
+            </div>
+
+            <div class="form-group">
+                <label>Feedback sobre la prueba (Opcional)</label>
+                <small>¿Qué te pareció? ¿Muy fácil, muy difícil?</small>
+                <textarea id="contact-feedback" style="height:60px; margin-top:5px;"></textarea>
+            </div>
+
+            <button type="submit" class="btn-finish" style="margin-top:10px;">📩 Enviar y Descargar Resultados</button>
+        </form>
+    </div>
+</div>
+
+<!-- CONTENIDO DEL EXAMEN -->
+<div id="quiz-content">
+
+    <header>
+        <div>
+            <h1 style="margin:0; font-size:1.5rem;">Prueba Técnica</h1>
+            <small style="color:var(--text-muted)">Enfoque: Criterio y Lógica</small>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <button class="doubt-btn" onclick="pausarPorDuda()">✋ Tengo una Duda</button>
+            <div class="timer-container" id="timer">10:00</div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌗 Tema</button>
+        </div>
+    </header>
+
+    <!-- PREGUNTA 1: CONCURRENCIA -->
+    <div class="card">
+        <h3>1. Concurrencia Crítica (Diseño)</h3>
+        <div class="scenario">
+            Estás diseñando un endpoint <code>POST /comprar-ticket</code>. 
+            Solo queda <b>1 ticket</b> disponible en base de datos.
+            Llegan <b>50 peticiones simultáneas</b> (mismo milisegundo) intentando comprarlo.
+        </div>
+        <p>¿Qué mecanismo específico (en Java, BD o Cache) utilizarías para asegurar que solo se venda 1 ticket y no 50? Explica tu elección.</p>
+        <textarea id="q1" placeholder="Ej: Bloqueo en BD, Redis, etc..."></textarea>
+        <div class="ai-check">
+            <label><input type="checkbox" id="ai1"> Utilicé soporte de IA para esta respuesta</label>
+        </div>
+    </div>
+
+    <!-- PREGUNTA 2: PROCESOS PESADOS -->
+    <div class="card">
+        <h3>2. Experiencia de Usuario y Procesos Pesados</h3>
+        <div class="scenario">
+            Tienes un botón "Generar Reporte Anual". El proceso tarda <b>45 segundos</b> en recopilar los datos.
+            Actualmente, el usuario hace click y el navegador se queda "cargando" (spinner) hasta que, a veces, da error de "Time Out".
+        </div>
+        <p>Tu jefe sugiere: <i>"Aumenta el tiempo de espera del servidor a 5 minutos"</i>.</p>
+        <p>¿Es esa una buena solución? Si no, ¿qué arquitectura propondrías para que el usuario no tenga que esperar mirando la pantalla bloqueada?</p>
+        <textarea id="q2" placeholder="Tu propuesta de solución..."></textarea>
+        <div class="ai-check">
+            <label><input type="checkbox" id="ai2"> Utilicé soporte de IA para esta respuesta</label>
+        </div>
+    </div>
+
+    <!-- PREGUNTA 3: SQL -->
+    <div class="card">
+        <h3>3. Optimización de Consultas (Selección)</h3>
+        <div class="scenario">
+            Una consulta SQL de búsqueda por "Email" en la tabla de Usuarios (5 millones de registros) está tardando 4 segundos. El cliente está furioso.
+        </div>
+        <p>¿Cuál es el <b>primer</b> paso lógico para intentar solucionarlo hoy mismo?</p>
+        <div class="options">
+            <label><input type="radio" name="q3" value="A"> A. Migrar el servicio a Microservicios para desacoplar la carga.</label>
+            <label><input type="radio" name="q3" value="B"> B. Verificar/Crear un Índice en la columna 'Email'.</label>
+            <label><input type="radio" name="q3" value="C"> C. Implementar Redis para cachear todas las búsquedas.</label>
+            <label><input type="radio" name="q3" value="D"> D. Reescribir la consulta usando JPA Criteria Builder.</label>
+        </div>
+        <div class="ai-check">
+            <label><input type="checkbox" id="ai3"> Utilicé soporte de IA para esta respuesta</label>
+        </div>
+    </div>
+
+    <!-- PREGUNTA 4: LÓGICA DE AUTOMATIZACIÓN -->
+    <div class="card">
+        <h3>4. Lógica: El proceso que se solapa</h3>
+        <div class="scenario">
+            Configuras una tarea automática (Cron Job) que corre <b>cada 5 minutos</b> para procesar pagos pendientes.
+            Hoy es día de cobro y hay tantos pagos que la tarea <b>tarda 8 minutos</b> en terminar.
+        </div>
+        <p>Al minuto 5, el sistema intentará lanzar la tarea de nuevo (mientras la primera sigue corriendo). ¿Qué problema causa esto y cómo lo evitarías?</p>
+        <textarea id="q4" placeholder="Explica el riesgo y la solución lógica..."></textarea>
+        <div class="ai-check">
+            <label><input type="checkbox" id="ai4"> Utilicé soporte de IA para esta respuesta</label>
+        </div>
+    </div>
+
+    <!-- PREGUNTA 5: SOFT SKILLS -->
+    <div class="card">
+        <h3>5. Resolución de Crisis</h3>
+        <div class="scenario">
+            Viernes 17:00 PM. Detectas que el sistema de facturación ha cobrado doble a 500 clientes. 
+            No tienes acceso a escribir en la base de datos de producción. Tu jefe no contesta.
+        </div>
+        <p>Describe tus siguientes 3 pasos inmediatos.</p>
+        <textarea id="q5" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea>
+        <div class="ai-check">
+            <label><input type="checkbox" id="ai5"> Utilicé soporte de IA para esta respuesta</label>
+        </div>
+    </div>
+
+    <!-- PREGUNTA 6: EXPECTATIVAS (NUEVA) -->
+    <div class="card" style="border-left: 5px solid var(--primary);">
+        <h3>6. Tú y el Futuro (Expectativas)</h3>
+        <div class="scenario">
+            Más allá del código, nos importa hacia dónde vas. No hay respuesta correcta, solo queremos ver si hacemos match.
+        </div>
+        <p><b>¿Dónde te ves profesionalmente en 2 años?</b> ¿Qué tipo de desafíos técnicos o rol esperas encontrar en un equipo ideal?</p>
+        <textarea id="q6" placeholder="Ej: Me gustaría liderar equipos, especializarme en DevOps, arquitectura, etc..."></textarea>
+    </div>
+
+    <button class="btn-finish" onclick="abrirModalFinal()">Finalizar Prueba</button>
+</div>
+
+<script>
+    // --- Lógica del Timer Principal ---
+    let tiempoRestante = 600; // 10 minutos
+    const timerDisplay = document.getElementById('timer');
+    let timerInterval = null; 
+    let dudasRegistradas = [];
+
+    // --- Lógica del Timer de Dudas ---
+    let dudaInterval = null;
+    let tiempoDuda = 60;
+    const doubtTimerDisplay = document.getElementById('doubt-timer');
+
+    // 1. INICIAR PRUEBA
+    function iniciarPrueba() {
+        document.getElementById('start-overlay').style.display = 'none';
+        document.getElementById('quiz-content').style.display = 'block';
+        
+        timerInterval = setInterval(actualizarRelojPrincipal, 1000);
+    }
+
+    function actualizarRelojPrincipal() {
+        if (tiempoRestante <= 0) {
+            clearInterval(timerInterval);
+            alert("El tiempo ha terminado. Por favor completa tus datos para finalizar.");
+            abrirModalFinal(); // Abre el modal forzosamente al acabar tiempo
+            return;
+        }
+        
+        const minutos = Math.floor(tiempoRestante / 60);
+        let segundos = tiempoRestante % 60;
+        segundos = segundos < 10 ? '0' + segundos : segundos;
+        timerDisplay.textContent = `${minutos}:${segundos}`;
+        
+        tiempoRestante--;
+    }
+
+    // 2. PAUSAR POR DUDA
+    function pausarPorDuda() {
+        clearInterval(timerInterval);
+        document.getElementById('doubt-modal').style.display = 'flex';
+        document.getElementById('doubt-text').value = ''; 
+        tiempoDuda = 60;
+        doubtTimerDisplay.textContent = tiempoDuda;
+        
+        dudaInterval = setInterval(() => {
+            tiempoDuda--;
+            doubtTimerDisplay.textContent = tiempoDuda;
+            
+            if (tiempoDuda <= 0) {
+                cerrarDuda(); 
+            }
+        }, 1000);
+    }
+
+    // 3. CERRAR DUDA
+    function cerrarDuda() {
+        clearInterval(dudaInterval);
+        const textoDuda = document.getElementById('doubt-text').value;
+        if (textoDuda.trim().length > 0) {
+            dudasRegistradas.push({
+                momento: new Date().toLocaleTimeString(),
+                texto: textoDuda
+            });
+        }
+        document.getElementById('doubt-modal').style.display = 'none';
+        if (tiempoRestante > 0) {
+            timerInterval = setInterval(actualizarRelojPrincipal, 1000);
+        }
+    }
+
+    // 4. ABRIR MODAL FINAL (Pausa el reloj)
+    function abrirModalFinal() {
+        clearInterval(timerInterval); // Detener reloj
+        document.getElementById('finish-modal').style.display = 'flex';
+    }
+
+    // 5. DESCARGAR JSON
+    function descargarJSON() {
+        // Recopilar datos del formulario
+        const nombre = document.getElementById('contact-name').value;
+        const email = document.getElementById('contact-email').value;
+        const telefono = document.getElementById('contact-phone').value;
+        const github = document.getElementById('contact-github').value;
+        const feedback = document.getElementById('contact-feedback').value;
+
+        // Validar (HTML5 ya valida required, pero doble check por si acaso)
+        if (!nombre || !email || !telefono) {
+            alert("Por favor completa los campos obligatorios (*)");
+            return;
+        }
+
+        const q3_selected = document.querySelector('input[name="q3"]:checked');
+
+        const respuestas = {
+            candidato: {
+                nombre: nombre,
+                email: email,
+                telefono: telefono,
+                github: github || "No proporcionado"
+            },
+            fecha: new Date().toLocaleString(),
+            respuestas_tecnicas: {
+                p1_concurrencia: document.getElementById('q1').value,
+                p2_procesos_pesados: document.getElementById('q2').value,
+                p3_sql_index: q3_selected ? q3_selected.value : "No respondido",
+                p4_cron_jobs: document.getElementById('q4').value,
+                p5_crisis: document.getElementById('q5').value
+            },
+            expectativas: document.getElementById('q6').value,
+            feedback_prueba: feedback,
+            dudas_durante_examen: dudasRegistradas,
+            uso_ia: {
+                p1: document.getElementById('ai1').checked,
+                p2: document.getElementById('ai2').checked,
+                p3: document.getElementById('ai3').checked,
+                p4: document.getElementById('ai4').checked,
+                p5: document.getElementById('ai5').checked
+            },
+            tiempo_restante_al_finalizar: tiempoRestante
+        };
+
+        // Generar y descargar
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(respuestas, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `Prueba_Tecnica_${nombre.replace(/\s+/g, '_')}.json`);
+        document.body.appendChild(downloadAnchorNode); 
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+
+        alert("¡Gracias! El archivo se ha descargado. Por favor envíalo al reclutador.");
+        
+        // Opcional: Deshabilitar todo para que no envíen de nuevo
+        document.getElementById('finish-modal').innerHTML = '<div class="modal-content" style="text-align:center;"><h2>¡Enviado!</h2><p>Gracias por tu tiempo.</p></div>';
+    }
+
+
+    function toggleTheme() {
+        const body = document.body;
+        const currentTheme = body.getAttribute('data-theme');
+        if (currentTheme === 'dark') {
+            body.setAttribute('data-theme', 'light');
+        } else {
+            body.setAttribute('data-theme', 'dark');
+        }
+    }
+
+</script>
+
+</body>
+</html>
