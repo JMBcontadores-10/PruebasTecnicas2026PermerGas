@@ -16,6 +16,7 @@
         --input-bg: #ffffff;
         --highlight: #dbeafe;
         --overlay-bg: rgba(255, 255, 255, 0.98);
+        --danger: #ef4444; /* Color para botón cancelar */
     }
 
     /* Clase para modo oscuro */
@@ -29,6 +30,7 @@
         --input-bg: #374151;
         --highlight: #1e3a8a;
         --overlay-bg: rgba(17, 24, 39, 0.98);
+        --danger: #ef4444;
     }
 
     body {
@@ -213,6 +215,12 @@
         transition: opacity 0.2s;
         margin-top: 20px;
     }
+    
+    /* Botón cancelar específico */
+    .btn-cancel {
+        background-color: var(--danger) !important;
+        margin-right: 10px;
+    }
 
     .btn-finish:hover { opacity: 0.9; }
 
@@ -230,6 +238,16 @@
     }
     .credits a:hover {
         text-decoration: underline;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .action-buttons button {
+        margin-top: 0;
+        flex: 1;
     }
 
 </style>
@@ -318,7 +336,11 @@
                 <textarea id="contact-feedback" style="height:60px; margin-top:5px;"></textarea>
             </div>
 
-            <button type="submit" class="btn-finish" style="margin-top:10px;">📩 Enviar y Descargar Resultados</button>
+            <div class="action-buttons">
+                <!-- Botón Cancelar (oculto si es por tiempo) -->
+                <button type="button" id="btn-cancel" class="btn-finish btn-cancel" onclick="cancelarEnvio()">Cancelar</button>
+                <button type="submit" class="btn-finish">📩 Enviar y Descargar</button>
+            </div>
         </form>
     </div>
 </div>
@@ -424,7 +446,7 @@
         <textarea id="q6" placeholder="Ej: Me gustaría liderar equipos, especializarme en DevOps, arquitectura, etc..."></textarea>
     </div>
 
-    <button class="btn-finish" onclick="abrirModalFinal()">Finalizar Prueba</button>
+    <button class="btn-finish" onclick="abrirModalFinal(false)">Finalizar Prueba</button>
 </div>
 
 <script>
@@ -451,7 +473,7 @@
         if (tiempoRestante <= 0) {
             clearInterval(timerInterval);
             alert("El tiempo ha terminado. Por favor completa tus datos para finalizar.");
-            abrirModalFinal(); // Abre el modal forzosamente al acabar tiempo
+            abrirModalFinal(true); // TRUE = Por tiempo (forzoso)
             return;
         }
         
@@ -498,13 +520,33 @@
         }
     }
 
-    // 4. ABRIR MODAL FINAL (Pausa el reloj)
-    function abrirModalFinal() {
-        clearInterval(timerInterval); // Detener reloj
+    // 4. ABRIR MODAL FINAL
+    function abrirModalFinal(forzoso = false) {
+        clearInterval(timerInterval); // Detener reloj siempre
+        
+        const btnCancel = document.getElementById('btn-cancel');
+        
+        if (forzoso) {
+            // Si es por tiempo, ocultamos el botón de cancelar
+            if (btnCancel) btnCancel.style.display = 'none';
+        } else {
+            // Si es manual, mostramos el botón de cancelar
+            if (btnCancel) btnCancel.style.display = 'block';
+        }
+
         document.getElementById('finish-modal').style.display = 'flex';
     }
 
-    // 5. DESCARGAR JSON
+    // 5. CANCELAR ENVIO (VOLVER)
+    function cancelarEnvio() {
+        document.getElementById('finish-modal').style.display = 'none';
+        // Reanudar reloj si queda tiempo
+        if (tiempoRestante > 0) {
+            timerInterval = setInterval(actualizarRelojPrincipal, 1000);
+        }
+    }
+
+    // 6. DESCARGAR JSON
     function descargarJSON() {
         // Recopilar datos del formulario
         const nombre = document.getElementById('contact-name').value;
@@ -560,7 +602,7 @@
 
         alert("¡Gracias! El archivo se ha descargado. Por favor envíalo al reclutador.");
         
-        // Opcional: Deshabilitar todo para que no envíen de nuevo
+        // Deshabilitar todo para evitar re-envíos
         document.getElementById('finish-modal').innerHTML = '<div class="modal-content" style="text-align:center;"><h2>¡Enviado!</h2><p>Gracias por tu tiempo.</p></div>';
     }
 
